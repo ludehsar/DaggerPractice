@@ -1,6 +1,7 @@
 package com.example.daggerpractice.ui.auth;
 
 
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -17,6 +18,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.bumptech.glide.RequestManager;
 import com.example.daggerpractice.R;
 import com.example.daggerpractice.models.User;
+import com.example.daggerpractice.ui.main.MainActivity;
 import com.example.daggerpractice.viewmodels.ViewModelProviderFactory;
 import com.google.android.material.textfield.TextInputEditText;
 
@@ -31,8 +33,6 @@ public class AuthActivity extends DaggerAppCompatActivity implements View.OnClic
     private AuthViewModel viewModel;
 
     private TextInputEditText userIdTextInputEditText;
-
-    private Button loginButton;
 
     private ProgressBar progressBar;
 
@@ -51,7 +51,7 @@ public class AuthActivity extends DaggerAppCompatActivity implements View.OnClic
         setContentView(R.layout.activity_auth);
 
         userIdTextInputEditText = findViewById(R.id.user_id_text_input_edit_text);
-        loginButton = findViewById(R.id.login_button);
+        Button loginButton = findViewById(R.id.login_button);
         progressBar = findViewById(R.id.progressBar);
 
         loginButton.setOnClickListener(this);
@@ -68,7 +68,7 @@ public class AuthActivity extends DaggerAppCompatActivity implements View.OnClic
     }
 
     private void subscribeObservers() {
-        viewModel.observeUser().observe(this, new Observer<AuthResource<User>>() {
+        viewModel.observeAuthState().observe(this, new Observer<AuthResource<User>>() {
             @Override
             public void onChanged(AuthResource<User> userAuthResource) {
                 if (userAuthResource != null) {
@@ -80,21 +80,28 @@ public class AuthActivity extends DaggerAppCompatActivity implements View.OnClic
                         case AUTHENTICATED: {
                             showProgressBar(false);
                             Log.d(TAG, "onChanged: LOGIN SUCCESS: " + userAuthResource.data.getEmail());
+                            onLoginSuccess();
                             break;
                         }
                         case NOT_AUTHENTICATED: {
                             showProgressBar(false);
-                            Toast.makeText(AuthActivity.this, userAuthResource.message, Toast.LENGTH_SHORT).show();
                             break;
                         }
                         case ERROR: {
                             showProgressBar(false);
+                            Toast.makeText(AuthActivity.this, userAuthResource.message, Toast.LENGTH_SHORT).show();
                             break;
                         }
                     }
                 }
             }
         });
+    }
+
+    private void onLoginSuccess() {
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
+        finish();
     }
 
     private void showProgressBar(boolean isVisible) {

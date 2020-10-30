@@ -1,11 +1,14 @@
 package com.example.daggerpractice.ui.auth;
 
+import android.util.Log;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.LiveDataReactiveStreams;
 import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModel;
 
+import com.example.daggerpractice.SessionManager;
 import com.example.daggerpractice.models.User;
 import com.example.daggerpractice.network.auth.AuthAPI;
 
@@ -18,19 +21,22 @@ public class AuthViewModel extends ViewModel {
     private static final String TAG = "AuthViewModel";
 
     private final AuthAPI authAPI;
-
-    private final MediatorLiveData<AuthResource<User>> authUser;
+    private SessionManager sessionManager;
 
     @Inject
-    public AuthViewModel(AuthAPI authAPI) {
+    public AuthViewModel(AuthAPI authAPI, SessionManager sessionManager) {
         this.authAPI = authAPI;
-        authUser = new MediatorLiveData<>();
+        this.sessionManager = sessionManager;
     }
 
     public void authenticateWithId(int userId) {
-        authUser.setValue(AuthResource.loading((User)null));
+        Log.d(TAG, "authenticateWithId: Attempting to login");
 
-        final LiveData<AuthResource<User>> source = LiveDataReactiveStreams.fromPublisher(
+        sessionManager.authenticateWithId(queryUserId(userId));
+    }
+
+    private LiveData<AuthResource<User>> queryUserId(int userId) {
+        return LiveDataReactiveStreams.fromPublisher(
                 authAPI.getUser(userId)
                         .onErrorReturn(new Function<Throwable, User>() {
                             @Override
@@ -51,17 +57,9 @@ public class AuthViewModel extends ViewModel {
                         })
                         .subscribeOn(Schedulers.io())
         );
-
-        authUser.addSource(source, new Observer<AuthResource<User>>() {
-            @Override
-            public void onChanged(AuthResource<User> authResource) {
-                authUser.setValue(authResource);
-                authUser.removeSource(source);
-            }
-        });
     }
 
-    public LiveData<AuthResource<User>> observeUser() {
-        return authUser;
+    public LiveData<AuthResource<User>> observeAuthState() {
+        return sessionManager.getAuthUser();
     }
 }

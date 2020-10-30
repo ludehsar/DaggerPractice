@@ -2,4 +2,7 @@
     <string name="app_name">DaggerPractice</string>
     <string name="user_id">User ID</string>
     <string name="login">Login</string>
+    <string name="logout">Logout</string>
+    <string name="error">Error</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
