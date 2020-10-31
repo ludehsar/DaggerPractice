@@ -24,7 +24,7 @@ public class AuthResource<T> {
         return new AuthResource<>(AuthStatus.AUTHENTICATED, data, null);
     }
 
-    public static <T> AuthResource<T> error(@Nullable String message, @Nullable T data) {
+    public static <T> AuthResource<T> error(@NonNull String message, @Nullable T data) {
         return new AuthResource<>(AuthStatus.ERROR, data, message);
     }
 
